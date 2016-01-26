@@ -1,0 +1,100 @@
+* Titanium multiconfiguration plugin
+
+This plugin helps configuring different profiles for Appcelerator Titanium projects. 
+Each profile can use it's own application id, name, tiapp properties and skin.
+
+** Installation
+
+To always load the plugin, you need to add the `commands` and `hooks` directories
+to the Titanium CLI's paths configuration:
+
+#+BEGIN_SRC shell
+ti config -a paths.commands /path/to/plugin/commands
+ti config -a paths.hooks /path/to/plugin/hooks
+#+END_SRC
+
+Alternatively, you may extract the plugin to the global Titanium installation
+folder or project directory, then enable it in the `tiapp.xml`:
+
+
+#+BEGIN_SRC xml
+<?xml version="1.0" encoding="UTF-8"?>
+<ti:app xmlns:ti="http://ti.appcelerator.org">
+	<plugins>
+		<plugin version="1.0">ti.multiconfiguration</plugin>
+	</plugins>
+</ti:app>
+#+END_SRC
+
+Your =$PATH= should contain =rsync= command.
+
+** Using
+
+*** Configuration file
+
+You can specify path to the configuration file with =--build-config= option. 
+By default it's =<PROJECT_DIR>/config.json=. Configuration file contains a
+list of profiles.
+
+Example:
+
+#+BEGIN_SRC javascript
+  {
+    "PROFILES": {
+      "profile1": {
+        "properties": {
+          "aaa.bbb": 42
+          "data.url": "https://foo.com"
+        },
+        "id": "com.foo",
+        "name": "Foo",
+        "skin": "foo",
+      },
+      "profile2": {
+        "properties": {
+          "aaa.bbb": 100
+          "data.url": "https://bar.com"
+        },
+        "id": "com.bar",
+        "name": "Bar",
+        "skin": "bar",
+        "android-theme": "simple"
+      },
+      "profile3": {
+        "properties": {
+          "aaa.bbb": 200
+          "data.url": "https://baz.com"
+        },
+        "id": "com.baz",
+        "name": "Baz",
+        "skin": "baz",
+        "android-theme": null
+      }
+    }
+  }
+#+END_SRC
+
+Each profile should contain an application id and name. You also can specify skin 
+id for profile. If =android-theme= property specified in profile Android
+theme =@style/Theme.Multiconfiguration.<android-theme>= will be used 
+for application. If =android-theme= property omitted =skin= property will be used 
+instead. If =android-theme= property is =null= Android theme won't be customized.
+
+You can use =skin= property to customize static resources. Assets 
+from =<PROJECT_DIR>/skins/<skin>= directory will be copied to =Resources= directory.
+
+*** Building project
+
+You need to specify profile name with a =--build-profile= argument.
+
+Example:
+
+=ti build -p iphone --build-profile profile2 --build-config profiles.json=
+
+** Packaging for Distribution
+
+To package the plugin, run:
+
+#+BEGIN_SRC shell
+node build.js
+#+END_SRC
