@@ -157,7 +157,7 @@ exports.init = function (logger, config, cli, appc) {
    
     build.tiapp.id = profile.id;
     build.tiapp.name = profile.name;
-    if (typeof buildConfig.VERSION !== undefined) {
+    if (typeof buildConfig.VERSION !== 'undefined') {
       build.tiapp.version = buildConfig.VERSION;
     }
     
