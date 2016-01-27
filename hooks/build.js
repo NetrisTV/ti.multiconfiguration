@@ -136,6 +136,7 @@ exports.init = function (logger, config, cli, appc) {
           else if(_.isNumber(value)) type = 'number';
           else type = 'string';
           prop = {type: type};
+          build.tiapp.properties[key] = prop;          
         }
         prop.value = profile.properties[key];
       });
