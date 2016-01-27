@@ -64,17 +64,20 @@ exports.init = function (logger, config, cli, appc) {
     process.exit(1);
   }
 
-  var p = cli.argv['build-profile'] || 'default';
-  var profile = buildConfig.PROFILES[p];
-  
-  if (!profile) {
-    logger.error('Invalid profile ' + p);
-    logger.error('Available profiles: ' + Object.keys(buildConfig.PROFILES));
-    logger.error('Please set valid profile name using --build-profile argument');
-    process.exit(1);
-  }
 
-  logger.log('Using multiconfiguration profile ' + p);
+  if (cli.argv['$command'] === 'build') {
+    var p = cli.argv['build-profile'] || 'default';
+    var profile = buildConfig.PROFILES[p];
+    if (!profile) {
+      logger.error('Invalid profile ' + p);
+      logger.error('Available profiles: ' + Object.keys(buildConfig.PROFILES));
+      logger.error('Please set valid profile name using --build-profile argument');
+      process.exit(1);
+    }
+
+    logger.log('Using multiconfiguration profile ' + p);
+  }
+  
   
   var i18n = appc.i18n(__dirname),
 	  __ = i18n.__,
