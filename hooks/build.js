@@ -3,15 +3,16 @@
  */
 exports.cliVersion = '>=3.X';
 
-var PROJECT_DIR, RESOURCES_DIR, PROFILES_DIR, configFile, buildConfig;
+var PROJECT_DIR;
+var RESOURCES_DIR;
+var configFile;
+var buildConfig;
 
-var path = require('path'),
-  fs = require('fs'),
-  exec = require('child_process').exec,
-  spawn = require('child_process').spawn,
-    Q = require('q'),
-    _ = require('underscore'),
-    xml2js = require('xml2js');
+var path = require('path');
+var fs = require('fs');
+var Q = require('q');
+var _ = require('underscore');
+var xml2js = require('xml2js');
 
 /**
  * @param {Object} logger Logger.
@@ -20,29 +21,11 @@ var path = require('path'),
  * @param {Object} appc Titanium appc library instance.
  */
 exports.init = function(logger, config, cli, appc) {
-
-
-  function rsync(src, dst, opts) {
-    return Q.promise(function(resolve, reject) {
-      opts = opts || '';
-      exec('rsync -avP ' + opts + ' "' + src + '" "' + dst + '"',
-           function(err, stdout, stderr) {
-             if (err) {
-               logger.error(stderr);
-               return reject(err);
-             }
-             logger.info(stdout);
-             resolve();
-           });
-    });
-  }
-
   var isShadow = false;
 
   if (cli.argv['project-dir'].indexOf('appify') > 0) {
     isShadow = true;
   }
-
 
   // TiShadow uses it's own project directory.
   PROJECT_DIR = isShadow ? path.join(cli.argv['project-dir'], '../../') :
@@ -51,7 +34,6 @@ exports.init = function(logger, config, cli, appc) {
   var DESTROOT = cli.argv['project-dir'];
 
   RESOURCES_DIR = path.join(DESTROOT, 'Resources');
-  SKINS_DIR = path.join(PROJECT_DIR, 'skins');
   configFile = cli.argv['build-config'] ||
     path.join(PROJECT_DIR, 'config.json');
   try {
@@ -62,8 +44,7 @@ exports.init = function(logger, config, cli, appc) {
   }
 
   try {
-    buildConfig =
-      JSON.parse(fs.readFileSync(configFile));
+    buildConfig = JSON.parse(fs.readFileSync(configFile));
   } catch (e) {
     logger.error('Unable to parse Multiconfiguration file ' + configFile);
     logger.error(e);
@@ -87,22 +68,14 @@ exports.init = function(logger, config, cli, appc) {
       process.exit(1);
     }
 
+    if (profile.theme) {
+      cli.argv['theme'] = profile.theme;
+    }
     logger.log('Using multiconfiguration profile ' + p);
   }
 
-
-  var i18n = appc.i18n(__dirname),
-    __ = i18n.__,
-    __n = i18n.__n,
-    parallel = appc.async.parallel,
-    pkginfo = appc.pkginfo.package(module);
-
-
-
-
   /**
-   * Adding custom application theme using profile's 'android-theme' or 'skin'
-   * property.
+   * Adding custom application theme using profile's 'android-theme' property.
    * @param {string} manifest Original manifest.
    * @return {Q.Promise} processed manifest.
    */
@@ -111,8 +84,6 @@ exports.init = function(logger, config, cli, appc) {
     var themeId;
     if (typeof profile['android-theme'] !== 'undefined') {
       themeId = profile['android-theme'];
-    } else {
-      themeId = profile.skin;
     }
 
     return Q.promise(function(resolve, reject) {
@@ -162,11 +133,6 @@ exports.init = function(logger, config, cli, appc) {
       value: p
     };
 
-    build.tiapp.properties['ti.multiconfiguration.skin'] = {
-      type: 'string',
-      value: profile.skin
-    };
-
     build.tiapp.id = profile.id;
     build.tiapp.name = profile.name;
     if (typeof buildConfig.VERSION !== 'undefined') {
@@ -179,34 +145,5 @@ exports.init = function(logger, config, cli, appc) {
         logger.log(JSON.stringify(build.tiapp));
         finished();
       });
-  });
-
-  /**
-   * Copying skin resources.
-   */
-  cli.on('build.pre.compile', {
-    post: function(build, finished) {
-      var platform = cli.argv['$originalPlatform'];
-
-      if (!profile.skin) {
-        logger.log('Skin not specified');
-        return finished();
-      }
-      var assetsPromise;
-      rsync(path.join(SKINS_DIR, profile.skin, 'assets/'),
-            path.join(RESOURCES_DIR, platform),
-            '--exclude=android --exclude=iphone').
-        then(rsync(path.join(SKINS_DIR, profile.skin, 'assets', platform),
-                   path.join(RESOURCES_DIR))).
-        then(rsync(path.join(SKINS_DIR, profile.skin, 'platform', platform),
-                   path.join(DESTROOT, 'platform'))).
-        then(function() {
-          finished();
-        }, function(err) {
-          logger.error(err);
-          process.exit(1);
-        });
-    },
-    priority: 1000
   });
 };
