@@ -48,7 +48,7 @@ Example:
         },
         "id": "com.foo",
         "name": "Foo",
-        "skin": "foo",
+        "theme": "foo",
       },
       "profile2": {
         "properties": {
@@ -57,7 +57,7 @@ Example:
         },
         "id": "com.bar",
         "name": "Bar",
-        "skin": "bar",
+        "theme": "bar",
         "android-theme": "simple"
       },
       "profile3": {
@@ -67,21 +67,19 @@ Example:
         },
         "id": "com.baz",
         "name": "Baz",
-        "skin": "baz",
+        "theme": "baz",
         "android-theme": null
       }
     }
   }
 #+END_SRC
 
-Each profile should contain an application id and name. You also can specify skin 
+Each profile should contain an application id and name. You also can specify theme
 id for profile. If =android-theme= property specified in profile Android
 theme =@style/Theme.Multiconfiguration.<android-theme>= will be used 
-for application. If =android-theme= property omitted =skin= property will be used 
-instead. If =android-theme= property is =null= Android theme won't be customized.
-
-You can use =skin= property to customize static resources. Assets 
-from =<PROJECT_DIR>/skins/<skin>= directory will be copied to =Resources= directory.
+for application. If =android-theme= property is =null= Android theme won't be customized.
+When =theme= is present plugin will inject specified theme as if it was set with
+=--theme== CLI argument.
 
 *** Building project
 
