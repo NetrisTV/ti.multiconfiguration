@@ -141,6 +141,7 @@ exports.init = function(logger, config, cli, appc) {
 
     processAndroidManifest(build.tiapp.android.manifest).
       then(function(manifest) {
+        build.tiapp.android.manifest = manifest;
         logger.log('Modified tiapp:');
         logger.log(JSON.stringify(build.tiapp));
         finished();
