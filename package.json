@@ -1,10 +1,7 @@
 {
   "name": "ti.multiconfiguration",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "Multiconfiguration plugin for Titanium projects",
   "dependencies": {
-    "q": "^1.4.1",
-    "xml2js": "^0.4.16",
-    "underscore": "^1.8.3"
   }
 }

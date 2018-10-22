@@ -10,9 +10,6 @@ var buildConfig;
 
 var path = require('path');
 var fs = require('fs');
-var Q = require('q');
-var _ = require('underscore');
-var xml2js = require('xml2js');
 
 /**
  * @param {Object} logger Logger.
@@ -75,40 +72,6 @@ exports.init = function(logger, config, cli, appc) {
   }
 
   /**
-   * Adding custom application theme using profile's 'android-theme' property.
-   * @param {string} manifest Original manifest.
-   * @return {Q.Promise} processed manifest.
-   */
-  function processAndroidManifest(manifest) {
-    logger.log('Processing Android manifest');
-    var themeId;
-    if (typeof profile['android-theme'] !== 'undefined') {
-      themeId = profile['android-theme'];
-    }
-
-    return Q.promise(function(resolve, reject) {
-      if (!themeId) return resolve(manifest);
-
-      var parser = new xml2js.Parser();
-      var builder = new xml2js.Builder();
-
-      parser.addListener('end', function(result) {
-        var root = result['manifest'];
-        root.application[0]['$']['android:theme'] =
-          '@style/Theme.Multiconfiguration.' + themeId;
-
-        var xml = builder.buildObject(result);
-        resolve(xml);
-      });
-
-      parser.parseString(manifest, function(err, result) {
-        if (err) return reject(err);
-      });
-
-    });
-  }
-
-  /**
    * Injecting profile parameters to tiapp.
    */
   cli.addHook('build.pre.construct', function(build, finished) {
@@ -118,8 +81,8 @@ exports.init = function(logger, config, cli, appc) {
         var value = profile.properties[key];
         if (!prop) {
           var type;
-          if (_.isBoolean(value)) type = 'bool';
-          else if (_.isNumber(value)) type = 'number';
+          if (typeof value === 'boolean') type = 'bool';
+          else if (typeof value === 'number') type = 'number';
           else type = 'string';
           prop = {type: type};
           build.tiapp.properties[key] = prop;
@@ -139,12 +102,15 @@ exports.init = function(logger, config, cli, appc) {
       build.tiapp.version = buildConfig.VERSION;
     }
 
-    processAndroidManifest(build.tiapp.android.manifest).
-      then(function(manifest) {
-        build.tiapp.android.manifest = manifest;
-        logger.log('Modified tiapp:');
-        logger.log(JSON.stringify(build.tiapp));
-        finished();
-      });
+    if (typeof profile['android-theme'] !== 'undefined') {
+      var themeId = profile['android-theme'];
+      if (build.tiappAndroidManifest) {
+        if (!build.tiappAndroidManifest.application) {
+          build.tiappAndroidManifest.application = {};
+        }
+        build.tiappAndroidManifest.application.theme = '@style/Theme.Multiconfiguration.' + themeId;
+      }
+    }
+    finished();
   });
 };
