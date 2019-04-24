@@ -132,6 +132,8 @@ exports.init = function(logger, config, cli, appc) {
       } else {
         sync();
       }
+    } else {
+      sync();
     }
     function sync() {
       if (!!profile.properties) {
