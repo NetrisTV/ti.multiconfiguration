@@ -119,7 +119,13 @@ exports.init = function(logger, config, cli, appc) {
    * Injecting profile parameters to tiapp.
    */
   cli.addHook('build.pre.construct', function(build, finished) {
-
+    if (typeof profile['androidManifest'] === 'string' && build.customAndroidManifest) {
+      var manifestFile = path.join(build.projectDir, profile['androidManifest']);
+      if (fs.existsSync(manifestFile)) {
+        var customManifest = build.customAndroidManifest.constructor.fromFilePathSync(manifestFile)
+        build.customAndroidManifest.copyFromAndroidManifest(customManifest);
+      }
+    }
     if (profile['raw-config']) {
       extendObject(build, profile['raw-config'], 'config');
       if (profile['raw-config']['tiapp'] && profile['raw-config']['tiapp']['modules']) {
